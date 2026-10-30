@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AFTERLIGHT — Experimental 3D Digital Art Studio</title>
+    <meta name="description" content="AFTERLIGHT is a continuous interactive 3D digital art experience. Procedural geometries, physical glass ribbons, liquid chrome, and scroll-driven metamorphosis." />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' fill='%234f75ff'>✦</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/src/styles/main.css" />
+  </head>
+  <body>
+    <!-- Real-time 3D Canvas Background -->
+    <canvas id="webgl-canvas" aria-hidden="true"></canvas>
+
+    <!-- Initial Cinematic Experience Loader -->
+    <div id="experience-loader" class="experience-loader" role="progressbar" aria-label="Loading AFTERLIGHT Experience" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div class="loader-backdrop"></div>
+      <div class="loader-content">
+        <div class="loader-symbol-wrap">
+          <span class="loader-glyph">✦</span>
+          <span class="loader-ring"></span>
+        </div>
+        <div class="loader-brand">
+          <span class="loader-title">AFTERLIGHT</span>
+          <span class="loader-subtitle">EXPERIMENTAL DIGITAL ART STUDIO</span>
+        </div>
+        <div class="loader-progress-track">
+          <div id="loader-progress-bar" class="loader-progress-bar"></div>
+        </div>
+        <div class="loader-status">
+          <span id="loader-status-text" class="loader-status-text">INITIALIZING QUANTUM MANIFOLD</span>
+          <span id="loader-status-pct" class="loader-status-pct">00%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- WebGL Fallback Notification -->
+    <div id="webgl-fallback" class="webgl-fallback" style="display: none;" role="alert">
+      <div class="fallback-card">
+        <span class="fallback-code">// GL_INITIALIZATION_NOTICE</span>
+        <h2 class="fallback-title">Hardware Acceleration Required</h2>
+        <p class="fallback-desc">
+          AFTERLIGHT generates procedural physical sculptures via real-time WebGL shaders. Your browser or display driver does not currently support WebGL hardware acceleration.
+        </p>
+      </div>
+    </div>
+
+    <!-- Navigation Header -->
+    <header class="site-header" role="banner">
+      <div class="header-inner">
+        <a href="#chapter-01" class="nav-logo" aria-label="AFTERLIGHT Home">
+          <span class="logo-symbol">✦</span>
+          <span class="logo-text">AFTERLIGHT</span>
+        </a>
+
+        <nav class="nav-links" aria-label="Main Navigation">
+          <a href="#chapter-01" class="nav-link is-active" data-nav="origin">
+            <span class="nav-link-dot" aria-hidden="true"></span>
+            <span class="nav-link-label">ORIGIN</span>
+          </a>
+          <a href="#chapter-02" class="nav-link" data-nav="narrative">
+            <span class="nav-link-dot" aria-hidden="true"></span>
+            <span class="nav-link-label">NARRATIVE</span>
+          </a>
+          <a href="#chapter-06" class="nav-link" data-nav="playground">
+            <span class="nav-link-dot" aria-hidden="true"></span>
+            <span class="nav-link-label">PLAYGROUND</span>
+          </a>
+        </nav>
+
+        <div class="nav-actions">
+          <div class="nav-chapter-badge" aria-live="polite">
+            <span class="badge-dot"></span>
+            <span id="nav-chapter-indicator" class="badge-text">CH 01 // ORIGIN</span>
+          </div>
+          <button id="btn-nav-playground" class="btn-ghost" type="button">
+            ENTER PLAYGROUND
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Persistent Chapter Progress Rail (Desktop) -->
+    <aside class="chapter-rail" aria-label="Chapter Navigation">
+      <div class="rail-track">
+        <div class="rail-indicator"></div>
+      </div>
+      <ul class="rail-list" role="tablist">
+        <li><button class="rail-item is-active" data-chapter="1" aria-label="Chapter 01: Origin"><span class="rail-num">01</span><span class="rail-name">ORIGIN</span></button></li>
+        <li><button class="rail-item" data-chapter="2" aria-label="Chapter 02: Structure"><span class="rail-num">02</span><span class="rail-name">STRUCTURE</span></button></li>
+        <li><button class="rail-item" data-chapter="3" aria-label="Chapter 03: Tension"><span class="rail-num">03</span><span class="rail-name">TENSION</span></button></li>
+        <li><button class="rail-item" data-chapter="4" aria-label="Chapter 04: Dissolution"><span class="rail-num">04</span><span class="rail-name">DISSOLUTION</span></button></li>
+        <li><button class="rail-item" data-chapter="5" aria-label="Chapter 05: Reformation"><span class="rail-num">05</span><span class="rail-name">REFORMATION</span></button></li>
+        <li><button class="rail-item" data-chapter="6" aria-label="Chapter 06: Playground"><span class="rail-num">06</span><span class="rail-name">PLAYGROUND</span></button></li>
+        <li><button class="rail-item" data-chapter="7" aria-label="Chapter 07: Continuation"><span class="rail-num">07</span><span class="rail-name">CONTINUATION</span></button></li>
+      </ul>
+    </aside>
+
+    <!-- Persistent Mobile / Tablet Chapter Navigation Pill -->
+    <nav class="mobile-chapter-pill" aria-label="Mobile Chapter Navigation">
+      <button id="mobile-prev-chapter" class="mobile-chapter-arrow" aria-label="Previous Chapter" type="button">‹</button>
+      <div class="mobile-chapter-current" id="mobile-chapter-label">
+        <span class="mobile-curr-num" id="mobile-curr-num">01</span>
+        <span class="mobile-curr-sep">/</span>
+        <span class="mobile-total-num">07</span>
+        <span class="mobile-curr-name" id="mobile-curr-name">ORIGIN</span>
+      </div>
+      <button id="mobile-next-chapter" class="mobile-chapter-arrow" aria-label="Next Chapter" type="button">›</button>
+    </nav>
+
+    <!-- Main Content: Continuous 7-Chapter Experience -->
+    <main id="main-content">
+      <!-- ===================================================================
+           CHAPTER 01 — ORIGIN
+           =================================================================== -->
+      <section id="chapter-01" class="chapter-section chapter-origin" data-chapter="1" aria-label="Chapter 01: Origin">
+        <div class="chapter-container">
+          <div class="chapter-meta-top">
+            <span class="meta-tag">// CHAPTER 01 : ORIGIN</span>
+            <span class="meta-coords">PRIMORDIAL EQUILIBRIUM // COILED CORE</span>
+          </div>
+
+          <div class="chapter-content hero-layout">
+            <h1 class="hero-headline">
+              Shape the<br /><span class="headline-accent">unseen.</span>
+            </h1>
+            <p class="hero-subline">
+              AFTERLIGHT is an interactive space for creating digital forms. An intricate procedural artwork woven from liquid chrome, translucent glass ribbons, and harmonic stardust.
+            </p>
+            <div class="hero-actions">
+              <button id="btn-enter-experience" class="btn-primary" type="button">
+                <span class="btn-label">ENTER THE EXPERIENCE</span>
+                <span class="btn-arrow" aria-hidden="true">→</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Elegant 3D Sculpture Interaction Discovery Indicator -->
+          <div id="drag-discovery-hint" class="drag-discovery-hint" aria-hidden="true">
+            <span class="hint-orbit-ring" aria-hidden="true"></span>
+            <span class="hint-glyph">✦</span>
+            <span class="hint-text">DRAG TO EXPLORE</span>
+          </div>
+
+          <div class="hero-scroll-indicator" aria-hidden="true">
+            <span class="indicator-label">SCROLL TO EXPLORE THE CYCLE</span>
+            <div class="indicator-track">
+              <div class="indicator-thumb"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           CHAPTER 02 — STRUCTURE
+           =================================================================== -->
+      <section id="chapter-02" class="chapter-section chapter-structure" data-chapter="2" aria-label="Chapter 02: Structure">
+        <div class="chapter-container">
+          <div class="chapter-content text-beside-left">
+            <span class="chapter-badge reveal-item">// CHAPTER 02 : STRUCTURE</span>
+            <h2 class="chapter-headline reveal-item">
+              The inner<br /><span class="headline-accent">geometry.</span>
+            </h2>
+            <p class="chapter-description reveal-item">
+              As perspective deepens, the internal architecture reveals itself: a central reflective manifold of liquid chrome enveloped by interwoven ribbons of dark obsidian glass.
+            </p>
+            <div class="chapter-callouts reveal-item">
+              <div class="callout-item">
+                <span class="callout-idx">01</span>
+                <div>
+                  <h3 class="callout-title">Liquid Metal Core</h3>
+                  <p class="callout-body">Parametric trefoil manifold with continuous organic surface fluting.</p>
+                </div>
+              </div>
+              <div class="callout-item">
+                <span class="callout-idx">02</span>
+                <div>
+                  <h3 class="callout-title">Obsidian Ribbons</h3>
+                  <p class="callout-body">Translucent refractive bands with physical thickness and specular reflection.</p>
+                </div>
+              </div>
+              <div class="callout-item">
+                <span class="callout-idx">03</span>
+                <div>
+                  <h3 class="callout-title">Orbital Filaments</h3>
+                  <p class="callout-body">Harmonic geodesic splines carrying travelling pulses of luminous energy.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           CHAPTER 03 — TENSION
+           =================================================================== -->
+      <section id="chapter-03" class="chapter-section chapter-tension" data-chapter="3" aria-label="Chapter 03: Tension">
+        <div class="chapter-container">
+          <div class="chapter-content text-beside-right">
+            <span class="chapter-badge reveal-item">// CHAPTER 03 : TENSION</span>
+            <h2 class="chapter-headline reveal-item">
+              Kinetic<br /><span class="headline-accent">torsion.</span>
+            </h2>
+            <p class="chapter-description reveal-item">
+              Gravitational forces pull across the lateral axis. The ribbons unwind into wide parabolic sweeps while the core twists under mathematical torsion, exposing its inner helical seams.
+            </p>
+            <div class="tension-metrics reveal-item">
+              <div class="metric-badge">
+                <span class="metric-label">AXIAL STRETCH</span>
+                <span class="metric-val">+155% LATERAL</span>
+              </div>
+              <div class="metric-badge">
+                <span class="metric-label">TORSION FACTOR</span>
+                <span class="metric-val">0.6π RADIAL</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           CHAPTER 04 — DISSOLUTION
+           =================================================================== -->
+      <section id="chapter-04" class="chapter-section chapter-dissolution" data-chapter="4" aria-label="Chapter 04: Dissolution">
+        <div class="chapter-container">
+          <div class="chapter-content text-beside-left">
+            <span class="chapter-badge reveal-item">// CHAPTER 04 : DISSOLUTION</span>
+            <h2 class="chapter-headline reveal-item">
+              The dissolving<br /><span class="headline-accent">boundary.</span>
+            </h2>
+            <p class="chapter-description reveal-item">
+              Solid boundaries yield to entropy. Outer contours shed thousands of stardust particles into a turbulent orbital cloud, while the filaments flare with heightened radiant energy.
+            </p>
+            <p class="chapter-caption reveal-item">
+              // 20,000 GPU PARTICLES DISPERSE ALONG THREE-DIMENSIONAL CURL NOISE
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           CHAPTER 05 — REFORMATION
+           =================================================================== -->
+      <section id="chapter-05" class="chapter-section chapter-reformation" data-chapter="5" aria-label="Chapter 05: Reformation">
+        <div class="chapter-container">
+          <div class="chapter-content text-beside-right">
+            <span class="chapter-badge reveal-item">// CHAPTER 05 : REFORMATION</span>
+            <h2 class="chapter-headline reveal-item">
+              Crystalline<br /><span class="headline-accent">bloom.</span>
+            </h2>
+            <p class="chapter-description reveal-item">
+              From dispersion emerges symmetry. The particulate stardust and glass ribbons converge into an expansive five-lobed crystalline bloom, establishing a new harmonic equilibrium.
+            </p>
+            <div class="reformation-tag reveal-item">
+              <span>ORDER RESTORED // NEW ARCHITECTURAL CONFIGURATION</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           CHAPTER 06 — PLAYGROUND
+           =================================================================== -->
+      <section id="chapter-06" class="chapter-section chapter-playground" data-chapter="6" aria-label="Chapter 06: Playground">
+        <div class="chapter-container">
+          <div class="chapter-content playground-layout">
+            <div class="playground-intro">
+              <span class="chapter-badge reveal-item">// CHAPTER 06 : PLAYGROUND</span>
+              <h2 class="chapter-headline reveal-item">
+                Interactive<br /><span class="headline-accent">laboratory.</span>
+              </h2>
+              <p class="chapter-description reveal-item">
+                Directly modulate the physical sculpture. Experiment with geometric archetypes, adjust rotation and surface deformation, select lighting palettes, or restore equilibrium.
+              </p>
+            </div>
+
+            <!-- Unobtrusive Interactive Studio Panel -->
+            <div class="studio-panel reveal-item" role="region" aria-label="Artwork Controls">
+              <!-- Preset Form Selectors -->
+              <div class="panel-section">
+                <span class="panel-label">// 1. GEOMETRIC ARCHETYPE PRESET</span>
+                <div class="form-selectors" role="group" aria-label="Sculpture Presets">
+                  <button type="button" class="form-select-btn is-active" data-preset="origin" aria-pressed="true">
+                    <span class="btn-index">01</span>
+                    <span class="btn-name">ORIGIN</span>
+                    <span class="btn-detail">Coiled Core</span>
+                  </button>
+                  <button type="button" class="form-select-btn" data-preset="tension" aria-pressed="false">
+                    <span class="btn-index">02</span>
+                    <span class="btn-name">TENSION</span>
+                    <span class="btn-detail">Helical Stretch</span>
+                  </button>
+                  <button type="button" class="form-select-btn" data-preset="dissolution" aria-pressed="false">
+                    <span class="btn-index">03</span>
+                    <span class="btn-name">DISSOLUTION</span>
+                    <span class="btn-detail">Particle Cloud</span>
+                  </button>
+                  <button type="button" class="form-select-btn" data-preset="reformation" aria-pressed="false">
+                    <span class="btn-index">04</span>
+                    <span class="btn-name">REFORMATION</span>
+                    <span class="btn-detail">Crystalline Bloom</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Modulators Grid -->
+              <div class="panel-controls-grid">
+                <!-- Rotation Speed -->
+                <div class="control-group">
+                  <span class="control-label">// ROTATION DYNAMICS</span>
+                  <div class="segmented-control" role="group" aria-label="Rotation Speed">
+                    <button type="button" class="segment-btn" data-speed="0">STILL</button>
+                    <button type="button" class="segment-btn is-active" data-speed="1">SERENE</button>
+                    <button type="button" class="segment-btn" data-speed="2.2">KINETIC</button>
+                  </div>
+                </div>
+
+                <!-- Surface Deformation -->
+                <div class="control-group">
+                  <span class="control-label">// SURFACE MOTION</span>
+                  <div class="segmented-control" role="group" aria-label="Deformation">
+                    <button type="button" class="segment-btn" data-deform="0">STILL</button>
+                    <button type="button" class="segment-btn is-active" data-deform="1">HARMONIC</button>
+                    <button type="button" class="segment-btn" data-deform="2.5">TURBULENT</button>
+                  </div>
+                </div>
+
+                <!-- Lighting Palette -->
+                <div class="control-group">
+                  <span class="control-label">// MATERIAL LIGHTING PALETTE</span>
+                  <div class="palette-selectors" role="group" aria-label="Color Palette">
+                    <button type="button" class="palette-btn is-active" data-palette="lapis" aria-label="Obsidian & Lapis">
+                      <span class="swatch swatch-lapis"></span>
+                      <span class="palette-name">LAPIS</span>
+                    </button>
+                    <button type="button" class="palette-btn" data-palette="platinum" aria-label="Museum Platinum">
+                      <span class="swatch swatch-platinum"></span>
+                      <span class="palette-name">PLATINUM</span>
+                    </button>
+                    <button type="button" class="palette-btn" data-palette="aurelia" aria-label="Aurelia Gold">
+                      <span class="swatch swatch-aurelia"></span>
+                      <span class="palette-name">AURELIA</span>
+                    </button>
+                    <button type="button" class="palette-btn" data-palette="spectral" aria-label="Spectral Violet">
+                      <span class="swatch swatch-spectral"></span>
+                      <span class="palette-name">SPECTRAL</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Filament Intensity -->
+                <div class="control-group">
+                  <span class="control-label">// FILAMENT GLOW</span>
+                  <div class="segmented-control" role="group" aria-label="Filament Glow">
+                    <button type="button" class="segment-btn" data-glow="0.4">SUBTLE</button>
+                    <button type="button" class="segment-btn is-active" data-glow="1.0">BALANCED</button>
+                    <button type="button" class="segment-btn" data-glow="2.0">RADIANT</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Bar -->
+              <div class="panel-action-bar">
+                <button id="btn-reset-sculpture" type="button" class="studio-action-btn btn-reset">
+                  <span class="btn-icon">↺</span>
+                  <span class="btn-text">RESET ALL PARAMETERS</span>
+                </button>
+                <span class="reset-status-badge" aria-live="polite"></span>
+              </div>
+
+              <!-- Live Telemetry -->
+              <div class="telemetry-bar" aria-label="Engine Telemetry">
+                <div class="telemetry-item">
+                  <span class="telemetry-label">ACTIVE CHAPTER</span>
+                  <span id="telemetry-chapter" class="telemetry-value">CH 06 // PLAYGROUND</span>
+                </div>
+                <div class="telemetry-item">
+                  <span class="telemetry-label">CORE GEOMETRY</span>
+                  <span class="telemetry-value">CHROME + GLASS</span>
+                </div>
+                <div class="telemetry-item">
+                  <span class="telemetry-label">STARDUST</span>
+                  <span id="telemetry-particles" class="telemetry-value">20,000 GPU</span>
+                </div>
+                <div class="telemetry-item">
+                  <span class="telemetry-label">ROTATION</span>
+                  <span id="telemetry-rotation" class="telemetry-value">YAW: 0° | PITCH: 0°</span>
+                </div>
+                <div class="telemetry-item">
+                  <span class="telemetry-label">FRAMERATE</span>
+                  <span id="telemetry-fps" class="telemetry-value">60 FPS</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           CHAPTER 07 — CONTINUATION
+           =================================================================== -->
+      <section id="chapter-07" class="chapter-section chapter-continuation" data-chapter="7" aria-label="Chapter 07: Continuation">
+        <div class="chapter-container">
+          <div class="chapter-content continuation-layout">
+            <span class="chapter-badge reveal-item">// CHAPTER 07 : CONTINUATION</span>
+            <h2 class="chapter-headline reveal-item">
+              The cycle<br /><span class="headline-accent">persists.</span>
+            </h2>
+            <p class="chapter-description reveal-item">
+              Form has no finality. In the digital void, dissolution and creation exist in perpetual return. The sculpture breathes indefinitely, responding to your presence and perspective.
+            </p>
+            <div class="continuation-actions reveal-item">
+              <button id="btn-return-origin" class="btn-primary" type="button">
+                <span class="btn-icon">↺</span>
+                <span class="btn-label">RETURN TO ORIGIN</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer" role="contentinfo">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <span class="footer-logo">AFTERLIGHT</span>
+          <span class="footer-tagline">EXPERIMENTAL DIGITAL ART STUDIO © 2026</span>
+        </div>
+        <div class="footer-notes">
+          <span>PARAMETRIC LIQUID CHROME</span>
+          <span class="footer-divider">•</span>
+          <span>PHYSICAL GLASS RIBBONS</span>
+          <span class="footer-divider">•</span>
+          <span>7-CHAPTER SCROLL JOURNEY</span>
+        </div>
+      </div>
+    </footer>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
