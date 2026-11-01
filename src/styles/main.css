@@ -526,9 +526,12 @@ a:focus-visible {
   flex: 1;
   background-color: var(--color-text-muted);
   border-radius: 1px;
-  height: 3px;
   transition: all var(--transition-fast);
 }
+
+.sound-bar.bar-1 { height: 4px; }
+.sound-bar.bar-2 { height: 9px; }
+.sound-bar.bar-3 { height: 6px; }
 
 .btn-sound.is-active {
   border-color: var(--color-border-accent);
@@ -547,7 +550,8 @@ a:focus-visible {
 
 @keyframes soundWave {
   0% { height: 3px; }
-  100% { height: 12px; }
+  50% { height: 12px; }
+  100% { height: 5px; }
 }
 
 .btn-primary {
@@ -709,6 +713,35 @@ a:focus-visible {
   display: flex;
   align-items: center;
   padding: 7rem 2.5rem;
+  transition: background var(--transition-slow);
+}
+
+.chapter-origin {
+  background: radial-gradient(circle at 75% 45%, rgba(79, 117, 255, 0.06) 0%, transparent 65%);
+}
+
+.chapter-structure {
+  background: radial-gradient(circle at 75% 40%, rgba(112, 149, 255, 0.05) 0%, transparent 60%);
+}
+
+.chapter-tension {
+  background: radial-gradient(circle at 25% 50%, rgba(157, 84, 255, 0.06) 0%, transparent 65%);
+}
+
+.chapter-dissolution {
+  background: radial-gradient(circle at 75% 55%, rgba(56, 216, 255, 0.06) 0%, transparent 60%);
+}
+
+.chapter-reformation {
+  background: radial-gradient(circle at 25% 45%, rgba(84, 255, 224, 0.05) 0%, transparent 60%);
+}
+
+.chapter-playground {
+  background: radial-gradient(circle at 75% 35%, rgba(79, 117, 255, 0.06) 0%, transparent 60%);
+}
+
+.chapter-continuation {
+  background: radial-gradient(circle at 50% 25%, rgba(180, 200, 255, 0.07) 0%, transparent 70%);
 }
 
 .chapter-container {
@@ -776,6 +809,7 @@ a:focus-visible {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  max-width: 540px;
   font-family: var(--font-mono);
   font-size: 0.75rem;
   letter-spacing: 0.14em;
@@ -788,7 +822,7 @@ a:focus-visible {
 
 .hero-layout {
   margin: auto 0;
-  max-width: 680px;
+  max-width: 560px;
 }
 
 .hero-headline {
@@ -805,7 +839,7 @@ a:focus-visible {
   font-size: clamp(1.05rem, 1.45vw, 1.25rem);
   color: var(--color-text-secondary);
   font-weight: 400;
-  max-width: 52ch;
+  max-width: 50ch;
   line-height: 1.7;
   margin-bottom: 2.5rem;
 }
@@ -822,8 +856,8 @@ a:focus-visible {
    -------------------------------------------------------------------------- */
 .drag-discovery-hint {
   position: absolute;
-  right: 18%;
-  bottom: 20%;
+  right: 12%;
+  bottom: 14%;
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
@@ -832,8 +866,8 @@ a:focus-visible {
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--color-text-secondary);
-  background: rgba(13, 16, 24, 0.75);
-  border: 1px solid rgba(244, 243, 240, 0.12);
+  background: rgba(13, 16, 24, 0.82);
+  border: 1px solid rgba(244, 243, 240, 0.14);
   padding: 0.75rem 1.4rem;
   border-radius: 9999px;
   backdrop-filter: blur(16px);
@@ -941,35 +975,34 @@ a:focus-visible {
 
 /* Left-aligned editorial text (Chapters 02 & 04) */
 .text-beside-left {
-  max-width: 540px;
+  max-width: 500px;
   margin-right: auto;
   position: relative;
   z-index: 10;
-  background: radial-gradient(ellipse at 20% 50%, rgba(13, 16, 24, 0.72) 0%, rgba(8, 9, 11, 0.45) 85%);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--color-border);
-  border-left: 2px solid var(--color-accent-blue);
+  background: radial-gradient(ellipse at 30% 30%, rgba(13, 16, 24, 0.78) 0%, rgba(8, 9, 11, 0.58) 90%);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(244, 243, 240, 0.08);
   padding: 2.5rem 2.5rem 2.5rem 2.25rem;
-  border-radius: 3px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 /* Right-aligned editorial text (Chapters 03 & 05) */
 .text-beside-right {
-  max-width: 540px;
+  max-width: 500px;
   margin-left: auto;
+  margin-right: 10.5rem;
   text-align: left;
   position: relative;
   z-index: 10;
-  background: radial-gradient(ellipse at 80% 50%, rgba(13, 16, 24, 0.72) 0%, rgba(8, 9, 11, 0.45) 85%);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--color-border);
-  border-right: 2px solid var(--color-accent-blue);
+  background: radial-gradient(ellipse at 70% 30%, rgba(13, 16, 24, 0.78) 0%, rgba(8, 9, 11, 0.58) 90%);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(244, 243, 240, 0.08);
   padding: 2.5rem 2.25rem 2.5rem 2.5rem;
-  border-radius: 3px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 /* Callout items in Chapter 02 */
@@ -1065,49 +1098,70 @@ a:focus-visible {
 /* --------------------------------------------------------------------------
    Chapter 06: Interactive Playground
    -------------------------------------------------------------------------- */
+.chapter-playground {
+  padding: 4.5rem 2.5rem 2.5rem 2.5rem;
+}
+
 .playground-layout {
-  max-width: 960px;
+  max-width: 680px;
 }
 
 .playground-intro {
-  margin-bottom: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.playground-intro .chapter-badge {
+  margin-bottom: 0.4rem;
+}
+
+.playground-intro .chapter-headline {
+  font-size: clamp(2.4rem, 4.2vw, 3.4rem);
+  line-height: 1.05;
+  margin-bottom: 0.6rem;
+}
+
+.playground-intro .chapter-description {
+  font-size: 0.95rem;
+  line-height: 1.55;
+  margin-bottom: 1rem;
+  max-width: 52ch;
 }
 
 .studio-panel {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 3px;
-  padding: 2.25rem;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+  background: radial-gradient(ellipse at 50% 20%, rgba(13, 16, 24, 0.85) 0%, rgba(8, 9, 11, 0.72) 100%);
+  border: 1px solid rgba(244, 243, 240, 0.09);
+  border-radius: 4px;
+  padding: 1.4rem 1.65rem;
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .panel-section {
-  margin-bottom: 2rem;
+  margin-bottom: 0.95rem;
 }
 
 .panel-label {
   display: block;
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   letter-spacing: 0.16em;
   color: var(--color-text-muted);
-  margin-bottom: 1rem;
+  margin-bottom: 0.55rem;
 }
 
 /* Form Presets */
 .form-selectors {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 0.85rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.65rem;
 }
 
 .form-select-btn {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 1.15rem 1.25rem;
+  padding: 0.85rem 0.95rem;
   background: rgba(244, 243, 240, 0.02);
   border: 1px solid var(--color-border);
   border-radius: 2px;
@@ -1140,16 +1194,16 @@ a:focus-visible {
 
 .btn-name {
   font-family: var(--font-sans);
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 600;
   color: var(--color-text-primary);
   letter-spacing: 0.04em;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.15rem;
 }
 
 .btn-detail {
   font-family: var(--font-sans);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--color-text-secondary);
   font-weight: 400;
 }
@@ -1157,12 +1211,12 @@ a:focus-visible {
 /* Modulators Grid */
 .panel-controls-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 1.5rem;
-  padding: 1.75rem 0;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  padding: 0.95rem 0;
   border-top: 1px solid var(--color-border);
   border-bottom: 1px solid var(--color-border);
-  margin-bottom: 1.75rem;
+  margin-bottom: 0.95rem;
 }
 
 .control-group {
@@ -1260,7 +1314,7 @@ a:focus-visible {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.75rem;
+  margin-bottom: 0.95rem;
 }
 
 .studio-action-btn {
@@ -1271,7 +1325,7 @@ a:focus-visible {
   font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.08em;
-  padding: 0.85rem 1.4rem;
+  padding: 0.75rem 1.25rem;
   background: rgba(244, 243, 240, 0.03);
   border: 1px solid var(--color-border);
   border-radius: 2px;
@@ -1302,7 +1356,7 @@ a:focus-visible {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   gap: 1rem;
-  padding-top: 1.5rem;
+  padding-top: 0.95rem;
   border-top: 1px solid var(--color-border);
 }
 
@@ -1330,28 +1384,41 @@ a:focus-visible {
 /* --------------------------------------------------------------------------
    Chapter 07: Continuation Layout
    -------------------------------------------------------------------------- */
+.chapter-continuation {
+  align-items: flex-end;
+  padding: 5rem 2.5rem 2.5rem 2.5rem;
+}
+
 .continuation-layout {
-  max-width: 680px;
+  max-width: 580px;
   margin: 0 auto;
   text-align: center;
   position: relative;
   z-index: 10;
-  background: radial-gradient(circle at 50% 50%, rgba(13, 16, 24, 0.75) 0%, rgba(8, 9, 11, 0.5) 85%);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--color-border);
-  padding: 3.25rem 2.75rem;
+  background: radial-gradient(circle at 50% 50%, rgba(13, 16, 24, 0.75) 0%, rgba(8, 9, 11, 0.45) 85%);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(244, 243, 240, 0.08);
+  padding: 2rem 2.25rem;
   border-radius: 4px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-  margin-top: 18vh;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.continuation-layout .chapter-badge {
+  margin-bottom: 0.5rem;
 }
 
 .continuation-layout .chapter-headline {
-  margin-bottom: 1.5rem;
+  font-size: clamp(2.2rem, 3.8vw, 3.2rem);
+  line-height: 1.08;
+  margin-bottom: 0.75rem;
 }
 
 .continuation-layout .chapter-description {
-  margin-bottom: 2.5rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  max-width: 52ch;
+  margin-bottom: 1.5rem;
 }
 
 .continuation-actions {
@@ -1616,6 +1683,16 @@ a:focus-visible {
     border-radius: 4px;
   }
 
+  .playground-intro {
+    background: rgba(8, 9, 11, 0.65);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--color-border);
+    padding: 1.5rem 1.25rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+  }
+
   .chapter-section {
     padding: 5.5rem 1.25rem;
   }
@@ -1625,7 +1702,7 @@ a:focus-visible {
   }
 
   .form-selectors {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 
   .telemetry-bar {

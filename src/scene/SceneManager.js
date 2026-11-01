@@ -42,8 +42,9 @@ export class SceneManager {
     this.dragSensitivity = (Math.PI / Math.min(window.innerWidth || 1440, 1600)) * 1.5;
 
     // Camera target vectors
-    this.cameraCurrentPos = new THREE.Vector3(0, 0, 7.8);
-    this.cameraTargetPos = new THREE.Vector3(0, 0, 7.8);
+    const initCamZ = this.isMobile ? 9.0 : (this.isTablet ? 8.4 : 7.6);
+    this.cameraCurrentPos = new THREE.Vector3(0, 0, initCamZ);
+    this.cameraTargetPos = new THREE.Vector3(0, 0, initCamZ);
     this.cameraLookTarget = new THREE.Vector3(0, 0, 0);
     this.cameraCurrentLook = new THREE.Vector3(0, 0, 0);
     this.cameraPointerOffset = new THREE.Vector3(0, 0, 0);
@@ -60,8 +61,8 @@ export class SceneManager {
     };
 
     // Sculpture horizontal framing offset
-    this.sculptureTargetX = 0;
-    this.sculptureCurrentX = 0;
+    this.sculptureTargetX = this.isMobile ? 0 : (this.isTablet ? 0.62 : 1.25);
+    this.sculptureCurrentX = this.sculptureTargetX;
     this.sculptureTargetY = 0;
     this.sculptureCurrentY = 0;
 

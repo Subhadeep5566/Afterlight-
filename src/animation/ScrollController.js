@@ -103,7 +103,7 @@ export class ScrollController {
 
     // 2. Coordinated Scroll-Driven Transformations Across the 7 Chapters
     // Transition 1 -> 2: Origin to Structure
-    // Sculpture moves to right-side macro framing (1.35, camera dives to 6.2)
+    // Sculpture moves to right-side macro framing (1.28, camera dives to 6.5)
     const t12 = ScrollTrigger.create({
       trigger: '#chapter-01',
       start: 'top top',
@@ -122,16 +122,18 @@ export class ScrollController {
           heroIndicator.style.opacity = Math.max(0, 1 - p * 2.5);
         }
 
-        const scX = gsap.utils.interpolate(1.25, 1.35, p);
-        const scY = gsap.utils.interpolate(0.0, 0.1, p);
-        const camZ = gsap.utils.interpolate(7.8, 6.2, p);
+        const scX = gsap.utils.interpolate(1.25, 1.28, p);
+        const scY = gsap.utils.interpolate(0.0, 0.05, p);
+        const camZ = gsap.utils.interpolate(7.6, 6.5, p);
 
         this.sceneManager.setSculptureFramingOffset(scX, scY);
         this.sceneManager.setCameraTarget(0, 0, camZ);
         this.sceneManager.setLightingState({
-          keyIntensity: gsap.utils.interpolate(2.0, 2.5, p),
-          rimIntensity: gsap.utils.interpolate(3.4, 3.0, p),
-          coreIntensity: gsap.utils.interpolate(1.8, 1.6, p)
+          keyIntensity: gsap.utils.interpolate(2.0, 2.4, p),
+          rimIntensity: gsap.utils.interpolate(3.4, 3.2, p),
+          coreIntensity: gsap.utils.interpolate(1.8, 1.7, p),
+          rimColor: gsap.utils.interpolate('#4f75ff', '#7095ff', p),
+          coreColor: gsap.utils.interpolate('#608eff', '#5480ff', p)
         });
 
         sculpture.setChapterWeights({
@@ -145,7 +147,7 @@ export class ScrollController {
     this.triggers.push(t12);
 
     // Transition 2 -> 3: Structure to Tension
-    // Sculpture shifts to the left side (-1.6), camera pulls back to 7.2
+    // Sculpture shifts to the left side (-1.45), camera pulls back to 7.2
     const t23 = ScrollTrigger.create({
       trigger: '#chapter-02',
       start: 'top top',
@@ -154,16 +156,18 @@ export class ScrollController {
       onUpdate: (self) => {
         const p = self.progress;
 
-        const scX = gsap.utils.interpolate(1.35, -1.65, p);
-        const scY = gsap.utils.interpolate(0.1, -0.1, p);
-        const camZ = gsap.utils.interpolate(6.2, 7.2, p);
+        const scX = gsap.utils.interpolate(1.28, -1.45, p);
+        const scY = gsap.utils.interpolate(0.05, -0.05, p);
+        const camZ = gsap.utils.interpolate(6.5, 7.2, p);
 
         this.sceneManager.setSculptureFramingOffset(scX, scY);
         this.sceneManager.setCameraTarget(0, 0, camZ);
         this.sceneManager.setLightingState({
-          keyIntensity: gsap.utils.interpolate(2.5, 2.2, p),
-          rimIntensity: gsap.utils.interpolate(3.0, 4.2, p),
-          coreIntensity: gsap.utils.interpolate(1.6, 2.2, p)
+          keyIntensity: gsap.utils.interpolate(2.4, 2.2, p),
+          rimIntensity: gsap.utils.interpolate(3.2, 4.2, p),
+          coreIntensity: gsap.utils.interpolate(1.7, 2.4, p),
+          rimColor: gsap.utils.interpolate('#7095ff', '#9d54ff', p),
+          coreColor: gsap.utils.interpolate('#5480ff', '#8038ff', p)
         });
 
         const tensionVal = gsap.utils.interpolate(0.15, 1.0, p);
@@ -178,7 +182,7 @@ export class ScrollController {
     this.triggers.push(t23);
 
     // Transition 3 -> 4: Tension to Dissolution
-    // Sculpture shifts back to the right (1.25), text on the left
+    // Sculpture shifts back to the right (1.28), text on the left
     const t34 = ScrollTrigger.create({
       trigger: '#chapter-03',
       start: 'top top',
@@ -187,16 +191,18 @@ export class ScrollController {
       onUpdate: (self) => {
         const p = self.progress;
 
-        const scX = gsap.utils.interpolate(-1.35, 1.25, p);
-        const scY = gsap.utils.interpolate(-0.1, 0.2, p);
-        const camZ = gsap.utils.interpolate(6.6, 7.5, p);
+        const scX = gsap.utils.interpolate(-1.45, 1.28, p);
+        const scY = gsap.utils.interpolate(-0.05, 0.15, p);
+        const camZ = gsap.utils.interpolate(7.2, 7.5, p);
 
         this.sceneManager.setSculptureFramingOffset(scX, scY);
         this.sceneManager.setCameraTarget(0, 0, camZ);
         this.sceneManager.setLightingState({
           keyIntensity: gsap.utils.interpolate(2.2, 1.8, p),
           rimIntensity: gsap.utils.interpolate(4.2, 3.8, p),
-          coreIntensity: gsap.utils.interpolate(2.2, 3.0, p)
+          coreIntensity: gsap.utils.interpolate(2.4, 3.0, p),
+          rimColor: gsap.utils.interpolate('#9d54ff', '#38d8ff', p),
+          coreColor: gsap.utils.interpolate('#8038ff', '#28a0ff', p)
         });
 
         const dissVal = p;
@@ -212,7 +218,7 @@ export class ScrollController {
     this.triggers.push(t34);
 
     // Transition 4 -> 5: Dissolution to Reformation
-    // Sculpture shifts to the left (-1.25), text on the right
+    // Sculpture shifts to the left (-1.35), text on the right
     const t45 = ScrollTrigger.create({
       trigger: '#chapter-04',
       start: 'top top',
@@ -221,16 +227,18 @@ export class ScrollController {
       onUpdate: (self) => {
         const p = self.progress;
 
-        const scX = gsap.utils.interpolate(1.25, -1.25, p);
-        const scY = gsap.utils.interpolate(0.2, -0.1, p);
-        const camZ = gsap.utils.interpolate(7.5, 7.5, p);
+        const scX = gsap.utils.interpolate(1.28, -1.35, p);
+        const scY = gsap.utils.interpolate(0.15, -0.08, p);
+        const camZ = gsap.utils.interpolate(7.5, 7.4, p);
 
         this.sceneManager.setSculptureFramingOffset(scX, scY);
         this.sceneManager.setCameraTarget(0, 0, camZ);
         this.sceneManager.setLightingState({
           keyIntensity: gsap.utils.interpolate(1.8, 2.4, p),
-          rimIntensity: gsap.utils.interpolate(3.8, 3.2, p),
-          coreIntensity: gsap.utils.interpolate(3.0, 2.0, p)
+          rimIntensity: gsap.utils.interpolate(3.8, 3.4, p),
+          coreIntensity: gsap.utils.interpolate(3.0, 2.2, p),
+          rimColor: gsap.utils.interpolate('#38d8ff', '#54ffe0', p),
+          coreColor: gsap.utils.interpolate('#28a0ff', '#38d0b0', p)
         });
 
         const dissVal = 1.0 - p;
@@ -246,7 +254,7 @@ export class ScrollController {
     this.triggers.push(t45);
 
     // Transition 5 -> 6: Reformation to Playground
-    // Sculpture positions in upper right (1.15, 0.35), studio panel sits on the left
+    // Sculpture positions in right side (1.62, 0.10), studio panel sits on the left
     const t56 = ScrollTrigger.create({
       trigger: '#chapter-05',
       start: 'top top',
@@ -255,23 +263,25 @@ export class ScrollController {
       onUpdate: (self) => {
         const p = self.progress;
 
-        const scX = gsap.utils.interpolate(-1.25, 1.15, p);
-        const scY = gsap.utils.interpolate(-0.1, 0.35, p);
-        const camZ = gsap.utils.interpolate(7.5, 7.8, p);
+        const scX = gsap.utils.interpolate(-1.35, 1.62, p);
+        const scY = gsap.utils.interpolate(-0.08, 0.10, p);
+        const camZ = gsap.utils.interpolate(7.4, 7.8, p);
 
         this.sceneManager.setSculptureFramingOffset(scX, scY);
         this.sceneManager.setCameraTarget(0, 0, camZ);
         this.sceneManager.setLightingState({
           keyIntensity: gsap.utils.interpolate(2.4, 2.0, p),
-          rimIntensity: gsap.utils.interpolate(3.2, 3.4, p),
-          coreIntensity: gsap.utils.interpolate(2.0, 1.8, p)
+          rimIntensity: gsap.utils.interpolate(3.4, 3.4, p),
+          coreIntensity: gsap.utils.interpolate(2.2, 1.8, p),
+          rimColor: gsap.utils.interpolate('#54ffe0', '#4f75ff', p),
+          coreColor: gsap.utils.interpolate('#38d0b0', '#608eff', p)
         });
       }
     });
     this.triggers.push(t56);
 
     // Transition 6 -> 7: Playground to Continuation
-    // Sculpture moves to upper center (0.0, 0.85), camera pulls back to 8.6
+    // Sculpture moves to upper center (0.0, 0.95), camera pulls back to 8.8
     const t67 = ScrollTrigger.create({
       trigger: '#chapter-06',
       start: 'top top',
@@ -280,16 +290,18 @@ export class ScrollController {
       onUpdate: (self) => {
         const p = self.progress;
 
-        const scX = gsap.utils.interpolate(1.15, 0.0, p);
-        const scY = gsap.utils.interpolate(0.35, 0.85, p);
-        const camZ = gsap.utils.interpolate(7.8, 8.6, p);
+        const scX = gsap.utils.interpolate(1.62, 0.0, p);
+        const scY = gsap.utils.interpolate(0.10, 1.25, p);
+        const camZ = gsap.utils.interpolate(7.8, 9.6, p);
 
         this.sceneManager.setSculptureFramingOffset(scX, scY);
         this.sceneManager.setCameraTarget(0, 0, camZ);
         this.sceneManager.setLightingState({
           keyIntensity: gsap.utils.interpolate(2.0, 1.6, p),
           rimIntensity: gsap.utils.interpolate(3.4, 3.0, p),
-          coreIntensity: gsap.utils.interpolate(1.8, 2.4, p)
+          coreIntensity: gsap.utils.interpolate(1.8, 2.4, p),
+          rimColor: gsap.utils.interpolate('#4f75ff', '#b4c8ff', p),
+          coreColor: gsap.utils.interpolate('#608eff', '#8ca0ff', p)
         });
       }
     });
