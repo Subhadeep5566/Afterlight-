@@ -19,6 +19,7 @@ credentials.json
 
 # Test artifacts and screenshots
 verification-*.png
+screenshot-*.png
 coverage/
 *.lcov
 

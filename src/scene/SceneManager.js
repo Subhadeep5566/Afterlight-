@@ -23,6 +23,16 @@ export class SceneManager {
     this.frameCount = 0;
     this.lastFpsTime = performance.now();
     this.currentFps = 60;
+    this.frameTimes = [];
+    this.maxFrameSamples = 180;
+    this.metrics = {
+      avgFps: 60,
+      p50: 16.6,
+      p95: 16.9,
+      p99: 17.4,
+      drawCalls: 0,
+      triangles: 0
+    };
 
     // Direct manipulation drag & inertia state
     this.drag = {
@@ -40,6 +50,11 @@ export class SceneManager {
       history: []
     };
     this.dragSensitivity = (Math.PI / Math.min(window.innerWidth || 1440, 1600)) * 1.5;
+
+    // Expose instance for telemetry and performance inspections
+    if (typeof window !== 'undefined') {
+      window.__afterlight_scene = this;
+    }
 
     // Camera target vectors
     const initCamZ = this.isMobile ? 9.0 : (this.isTablet ? 8.4 : 7.6);
@@ -251,6 +266,10 @@ export class SceneManager {
     this.fillLight = new THREE.DirectionalLight(0x7688b5, 0.9);
     this.fillLight.position.set(-4, 3, 4);
     this.scene.add(this.fillLight);
+
+    this.bounceLight = new THREE.DirectionalLight(0x182440, 0.45);
+    this.bounceLight.position.set(0, -5, 2);
+    this.scene.add(this.bounceLight);
 
     this.corePointLight = new THREE.PointLight(0x608eff, 1.8, 8.0);
     this.corePointLight.position.set(0, 0, 0);
@@ -493,6 +512,12 @@ export class SceneManager {
     const delta = Math.min(this.clock.getDelta(), 0.1);
     const elapsedTime = this.clock.getElapsedTime();
 
+    const frameMs = delta * 1000;
+    this.frameTimes.push(frameMs);
+    if (this.frameTimes.length > this.maxFrameSamples) {
+      this.frameTimes.shift();
+    }
+
     // 1. Framerate-independent cinematic camera smoothing
     const camAlpha = Math.min(1.0, 3.8 * delta);
     this._tempTargetPos.set(
@@ -550,6 +575,23 @@ export class SceneManager {
       this.currentFps = Math.round((this.frameCount * 1000) / (now - this.lastFpsTime));
       this.frameCount = 0;
       this.lastFpsTime = now;
+
+      if (this.frameTimes.length > 0) {
+        const sorted = [...this.frameTimes].sort((a, b) => a - b);
+        const p50Idx = Math.floor(sorted.length * 0.5);
+        const p95Idx = Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95));
+        const p99Idx = Math.min(sorted.length - 1, Math.floor(sorted.length * 0.99));
+        this.metrics.p50 = parseFloat(sorted[p50Idx].toFixed(2));
+        this.metrics.p95 = parseFloat(sorted[p95Idx].toFixed(2));
+        this.metrics.p99 = parseFloat(sorted[p99Idx].toFixed(2));
+        this.metrics.avgFps = this.currentFps;
+      }
+
+      if (this.renderer && this.renderer.info) {
+        this.metrics.drawCalls = this.renderer.info.render.calls;
+        this.metrics.triangles = this.renderer.info.render.triangles;
+      }
+
       if (this.onFPSUpdate) {
         this.onFPSUpdate(this.currentFps);
       }
@@ -628,6 +670,15 @@ export class SceneManager {
     return this._cachedRotAngles;
   }
 
+  getPerformanceMetrics() {
+    return {
+      ...this.metrics,
+      fps: this.currentFps,
+      adaptiveDpr: this.adaptiveDpr,
+      dpr: this.dpr
+    };
+  }
+
   dispose() {
     this.stop();
 
@@ -660,7 +711,7 @@ export class SceneManager {
       this.sculpture = null;
     }
 
-    [this.ambientLight, this.keyLight, this.rimLight, this.fillLight, this.corePointLight].forEach((light) => {
+    [this.ambientLight, this.keyLight, this.rimLight, this.fillLight, this.bounceLight, this.corePointLight].forEach((light) => {
       if (light) {
         if (this.scene) this.scene.remove(light);
         if (light.dispose) light.dispose();
@@ -679,6 +730,10 @@ export class SceneManager {
     if (this.renderer) {
       this.renderer.dispose();
       this.renderer = null;
+    }
+
+    if (typeof window !== 'undefined' && window.__afterlight_scene === this) {
+      delete window.__afterlight_scene;
     }
 
     this.scene = null;

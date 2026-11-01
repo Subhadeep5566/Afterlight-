@@ -56,13 +56,14 @@ export const filamentFragmentShader = /* glsl */ `
     // Secondary micro-shimmer
     float shimmer = sin(vProgress * 60.0 + uTime * 6.0) * 0.12;
 
-    // Blend base electric color with radiant luminous white peak
-    vec3 col = mix(uBaseColor, uAccentColor, pulse + shimmer);
+    // Subtle chromatic wavelength shift on leading edge
+    vec3 spectralLeading = mix(uBaseColor, vec3(0.65, 0.85, 1.0), pulse * 0.6);
+    vec3 col = mix(spectralLeading, uAccentColor, clamp(pulse * 1.2 + shimmer, 0.0, 1.0));
 
-    // Dynamic intensity falloff
+    // Dynamic intensity falloff with velvet edge softness
     float alpha = clamp(0.38 + pulse * 0.62, 0.0, 1.0) * uIntensity;
 
-    gl_FragColor = vec4(col * (0.85 + pulse * 1.5), alpha);
+    gl_FragColor = vec4(col * (0.88 + pulse * 1.6), alpha);
   }
 `;
 
@@ -157,9 +158,11 @@ export const stardustFragmentShader = /* glsl */ `
     float dist = length(coord);
     if (dist > 0.5) discard;
 
-    float soft = smoothstep(0.5, 0.04, dist);
-    float core = smoothstep(0.18, 0.0, dist) * 0.8;
+    // Smooth Gaussian stellar core falloff
+    float soft = smoothstep(0.5, 0.05, dist);
+    float core = smoothstep(0.18, 0.0, dist) * 0.95;
+    float halo = exp(-dist * 5.5) * 0.4;
 
-    gl_FragColor = vec4(vColor + vec3(core * 0.35), (soft + core) * vAlpha);
+    gl_FragColor = vec4(vColor + vec3(core * 0.4 + halo * 0.2), clamp((soft + core + halo) * vAlpha, 0.0, 1.0));
   }
 `;

@@ -134,7 +134,7 @@ export class Sculpture {
       for (let j = 0; j <= vSegments; j++) {
         const v = (j / vSegments) * Math.PI * 2;
 
-        const tubeRadius = 0.32 + 0.1 * Math.cos(3 * u + v) + 0.04 * Math.sin(5 * u);
+        const tubeRadius = 0.32 + 0.08 * Math.cos(3 * u + v) + 0.03 * Math.sin(6 * u + 2 * v) + 0.015 * Math.cos(12 * v);
         const cosV = Math.cos(v);
         const sinV = Math.sin(v);
 
@@ -198,15 +198,15 @@ export class Sculpture {
 
     this.coreMaterial = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color(0xf0f3f6),
-      metalness: 0.94,
-      roughness: 0.11,
+      metalness: 0.96,
+      roughness: 0.09,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.08,
-      reflectivity: 0.96,
-      iridescence: 0.28,
-      iridescenceIOR: 1.35,
-      iridescenceThicknessRange: [100, 380],
-      envMapIntensity: 2.2
+      clearcoatRoughness: 0.06,
+      reflectivity: 0.98,
+      iridescence: 0.35,
+      iridescenceIOR: 1.42,
+      iridescenceThicknessRange: [120, 420],
+      envMapIntensity: 2.4
     });
 
     this.coreMesh = new THREE.Mesh(geometry, this.coreMaterial);
@@ -285,19 +285,20 @@ export class Sculpture {
 
     this.ribbonMaterial = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color(0x0e121e),
-      roughness: 0.05,
-      metalness: 0.12,
-      transmission: 0.76,
-      thickness: 1.4,
-      ior: 1.54,
-      attenuationColor: new THREE.Color(0x182448),
-      attenuationDistance: 1.5,
-      specularColor: new THREE.Color(0x8faaff),
-      specularIntensity: 1.4,
+      roughness: 0.04,
+      metalness: 0.08,
+      transmission: 0.82,
+      thickness: 1.8,
+      ior: 1.58,
+      dispersion: 0.024,
+      attenuationColor: new THREE.Color(0x142040),
+      attenuationDistance: 1.8,
+      specularColor: new THREE.Color(0x9cb8ff),
+      specularIntensity: 1.6,
       transparent: true,
-      opacity: 0.92,
+      opacity: 0.94,
       side: THREE.DoubleSide,
-      envMapIntensity: 2.4
+      envMapIntensity: 2.6
     });
 
     this.ribbonMesh = new THREE.Mesh(geometry, this.ribbonMaterial);
