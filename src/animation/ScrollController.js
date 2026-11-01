@@ -8,15 +8,45 @@ export class ScrollController {
    * @param {Object} options
    * @param {import('../scene/SceneManager.js').SceneManager} options.sceneManager
    * @param {Function} [options.onChapterChange]
+   * @param {import('../audio/SoundManager.js').SoundManager} [options.soundManager]
    */
-  constructor({ sceneManager, onChapterChange = null }) {
+  constructor({ sceneManager, onChapterChange = null, soundManager = null }) {
     this.sceneManager = sceneManager;
     this.onChapterChange = onChapterChange;
+    this.soundManager = soundManager;
     this.prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.triggers = [];
     this.currentChapter = 1;
 
     this.init();
+  }
+
+  triggerHeroEntrance() {
+    if (this.prefersReducedMotion) return;
+
+    const metaTop = document.querySelector('.chapter-meta-top');
+    const heroH1 = document.querySelector('.hero-headline');
+    const heroSub = document.querySelector('.hero-subline');
+    const heroActions = document.querySelector('.hero-actions');
+    const heroIndicator = document.querySelector('.hero-scroll-indicator');
+
+    const tl = gsap.timeline({ delay: 0.15 });
+
+    if (metaTop) {
+      tl.fromTo(metaTop, { opacity: 0, y: -8 }, { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out' }, 0);
+    }
+    if (heroH1) {
+      tl.fromTo(heroH1, { opacity: 0, y: 32 }, { opacity: 1, y: 0, duration: 1.1, ease: 'power3.out' }, 0.1);
+    }
+    if (heroSub) {
+      tl.fromTo(heroSub, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.9, ease: 'power2.out' }, 0.25);
+    }
+    if (heroActions) {
+      tl.fromTo(heroActions, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' }, 0.4);
+    }
+    if (heroIndicator) {
+      tl.fromTo(heroIndicator, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' }, 0.55);
+    }
   }
 
   init() {
@@ -281,6 +311,11 @@ export class ScrollController {
   setActiveChapter(chapterNum) {
     if (this.currentChapter === chapterNum) return;
     this.currentChapter = chapterNum;
+
+    // Update generative soundscape tone per chapter
+    if (this.soundManager) {
+      this.soundManager.setChapterTone(chapterNum);
+    }
 
     // 1. Update Desktop Chapter Rail
     const railButtons = document.querySelectorAll('.rail-item');

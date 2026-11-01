@@ -3,10 +3,13 @@ export class UIController {
    * @param {Object} options
    * @param {import('../scene/SceneManager.js').SceneManager} options.sceneManager
    * @param {import('../animation/ScrollController.js').ScrollController} options.scrollController
+   * @param {import('../audio/SoundManager.js').SoundManager} [options.soundManager]
    */
-  constructor({ sceneManager, scrollController }) {
+  constructor({ sceneManager, scrollController, soundManager = null }) {
     this.sceneManager = sceneManager;
     this.scrollController = scrollController;
+    this.soundManager = soundManager;
+    this.handleKeyDown = null;
 
     this.init();
   }
@@ -16,6 +19,9 @@ export class UIController {
     this.bindHeroActions();
     this.bindPlaygroundControls();
     this.bindContinuation();
+    this.bindSoundToggle();
+    this.bindFallbackActions();
+    this.bindKeyboardShortcuts();
     this.initTelemetry();
   }
 
@@ -113,8 +119,31 @@ export class UIController {
       returnOriginBtn.addEventListener('click', (e) => {
         e.preventDefault();
         this.scrollController.returnToOrigin();
+        if (this.sceneManager?.sculpture) {
+          setTimeout(() => {
+            this.sceneManager.sculpture.triggerPulse(1.3);
+            if (this.soundManager) {
+              this.soundManager.triggerChime(1.15);
+            }
+          }, 450);
+        }
       });
     }
+  }
+
+  bindSoundToggle() {
+    const soundBtn = document.querySelector('#btn-sound-toggle');
+    const soundLabel = document.querySelector('#sound-label');
+    if (!soundBtn || !this.soundManager) return;
+
+    soundBtn.addEventListener('click', async () => {
+      const isPlaying = await this.soundManager.toggle();
+      soundBtn.classList.toggle('is-active', isPlaying);
+      soundBtn.setAttribute('aria-pressed', String(isPlaying));
+      if (soundLabel) {
+        soundLabel.textContent = isPlaying ? 'SOUND // ON' : 'SOUND // OFF';
+      }
+    });
   }
 
   bindPlaygroundControls() {
@@ -231,6 +260,37 @@ export class UIController {
     }
   }
 
+  bindFallbackActions() {
+    const retryBtn = document.querySelector('#btn-webgl-retry');
+    if (retryBtn) {
+      retryBtn.addEventListener('click', () => window.location.reload());
+    }
+    const editorialBtn = document.querySelector('#btn-webgl-editorial');
+    if (editorialBtn) {
+      editorialBtn.addEventListener('click', () => {
+        const fallback = document.querySelector('#webgl-fallback');
+        if (fallback) fallback.style.display = 'none';
+        document.body.classList.add('webgl-disabled');
+      });
+    }
+  }
+
+  bindKeyboardShortcuts() {
+    this.handleKeyDown = (e) => {
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
+
+      if (e.key === 'ArrowDown' || e.key === 'j') {
+        if (this.scrollController) this.scrollController.nextChapter();
+      } else if (e.key === 'ArrowUp' || e.key === 'k') {
+        if (this.scrollController) this.scrollController.prevChapter();
+      } else if (e.key === 'm' || e.key === 'M') {
+        const soundBtn = document.querySelector('#btn-sound-toggle');
+        if (soundBtn) soundBtn.click();
+      }
+    };
+    window.addEventListener('keydown', this.handleKeyDown);
+  }
+
   onFirstDrag() {
     const hint = document.querySelector('#drag-discovery-hint');
     if (hint) {
@@ -263,5 +323,40 @@ export class UIController {
     if (fallbackEl) fallbackEl.style.display = 'flex';
     const canvas = document.querySelector('#webgl-canvas');
     if (canvas) canvas.style.display = 'none';
+    document.body.classList.add('webgl-disabled');
+  }
+
+  static showContextLostNotice() {
+    const banner = document.querySelector('#context-lost-banner');
+    if (banner) banner.style.display = 'block';
+  }
+
+  static hideContextLostNotice() {
+    const banner = document.querySelector('#context-lost-banner');
+    if (banner) banner.style.display = 'none';
+  }
+
+  static showFatalNotice(message = '') {
+    const fallbackEl = document.querySelector('#webgl-fallback');
+    if (fallbackEl) {
+      fallbackEl.style.display = 'flex';
+      const desc = fallbackEl.querySelector('.fallback-desc');
+      if (desc && message) {
+        desc.textContent = `AFTERLIGHT encountered an unexpected initialization constraint: ${message}. You can continue exploring the seven-chapter editorial narrative.`;
+      }
+    }
+    const canvas = document.querySelector('#webgl-canvas');
+    if (canvas) canvas.style.display = 'none';
+    document.body.classList.add('webgl-disabled');
+  }
+
+  dispose() {
+    if (this.handleKeyDown) {
+      window.removeEventListener('keydown', this.handleKeyDown);
+      this.handleKeyDown = null;
+    }
+    this.sceneManager = null;
+    this.scrollController = null;
+    this.soundManager = null;
   }
 }

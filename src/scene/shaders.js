@@ -110,11 +110,12 @@ export const stardustVertexShader = /* glsl */ `
       pos = mix(pos, aPosReformation, uReformation);
     }
 
-    // Organic micro-drift
+    // Organic micro-drift with celestial orbital precession
+    float orbAngle = uTime * 0.15 * (0.6 + aRandom * 0.4);
     vec3 drift = vec3(
-      sin(uTime * 0.4 + aRandom * 6.28) * 0.06,
-      cos(uTime * 0.35 + aRandom * 6.28) * 0.06,
-      sin(uTime * 0.45 + pos.x) * 0.06
+      sin(orbAngle + aRandom * 6.28) * 0.08,
+      cos(uTime * 0.32 + aRandom * 6.28) * 0.06,
+      cos(orbAngle + aRandom * 6.28) * 0.08
     );
 
     // Mouse magnetic influence

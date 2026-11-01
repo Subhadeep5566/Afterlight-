@@ -1,6 +1,7 @@
 import { SceneManager } from './scene/SceneManager.js';
 import { ScrollController } from './animation/ScrollController.js';
 import { UIController } from './ui/UIController.js';
+import { SoundManager } from './audio/SoundManager.js';
 
 /**
  * AFTERLIGHT Application Entry Point
@@ -26,46 +27,66 @@ function initApp() {
 
   updateProgress(20, 'INITIALIZING GRAPHICS ENGINE');
 
+  // Generative Ambient Soundscape (User opt-in, default OFF)
+  const soundManager = new SoundManager();
+
   let uiController = null;
   let scrollController = null;
 
   // Initialize Three.js Scene and Real-Time Graphics Engine
-  const sceneManager = new SceneManager({
-    canvas,
-    onFPSUpdate: (fps) => {
-      if (uiController) {
-        uiController.updateFPS(fps);
+  let sceneManager = null;
+  try {
+    sceneManager = new SceneManager({
+      canvas,
+      onFPSUpdate: (fps) => {
+        if (uiController) {
+          uiController.updateFPS(fps);
+        }
+      },
+      onFirstDrag: () => {
+        if (uiController) {
+          uiController.onFirstDrag();
+        }
+      },
+      onMotion: (velocity) => {
+        soundManager.onSculptureMotion(velocity);
+      },
+      onWebGLError: () => {
+        if (loaderEl) loaderEl.style.display = 'none';
+        UIController.showWebGLFallback();
       }
-    },
-    onFirstDrag: () => {
-      if (uiController) {
-        uiController.onFirstDrag();
-      }
-    },
-    onWebGLError: () => {
-      if (loaderEl) loaderEl.style.display = 'none';
-      UIController.showWebGLFallback();
-    }
-  });
+    });
+  } catch (err) {
+    console.error('[AFTERLIGHT] Failed to initialize SceneManager:', err);
+    if (loaderEl) loaderEl.style.display = 'none';
+    UIController.showWebGLFallback();
+    return;
+  }
 
   updateProgress(65, 'SYNTHESIZING PROCEDURAL GEOMETRIES');
 
   // If WebGL initialized successfully, initialize scroll and UI controllers
-  if (sceneManager.sculpture) {
+  if (sceneManager && sceneManager.sculpture) {
     updateProgress(85, 'PRE-WARMING SHADER PIPELINES');
 
-    scrollController = new ScrollController({
-      sceneManager
-    });
+    try {
+      scrollController = new ScrollController({
+        sceneManager,
+        soundManager
+      });
 
-    uiController = new UIController({
-      sceneManager,
-      scrollController
-    });
+      uiController = new UIController({
+        sceneManager,
+        scrollController,
+        soundManager
+      });
+    } catch (err) {
+      console.error('[AFTERLIGHT] Controller initialization error:', err);
+    }
 
     updateProgress(100, 'EQUILIBRIUM ESTABLISHED');
 
-    // Smooth cinematic curtain reveal
+    // Carefully choreographed opening reveal (First 10 seconds)
     setTimeout(() => {
       if (loaderEl) {
         loaderEl.classList.add('is-loaded');
@@ -73,20 +94,47 @@ function initApp() {
           loaderEl.style.display = 'none';
         }, 900);
       }
-      if (sceneManager.sculpture) {
-        sceneManager.sculpture.triggerPulse(1.2);
+
+      // 1. Sculpture awakens from compact core to full presence
+      if (sceneManager && sceneManager.sculpture) {
+        sceneManager.sculpture.triggerAwakening();
+      }
+
+      // 2. Editorial typography and discovery cue glide into view
+      if (scrollController) {
+        scrollController.triggerHeroEntrance();
       }
     }, 350);
   } else {
     if (loaderEl) loaderEl.style.display = 'none';
+    UIController.showWebGLFallback();
   }
 
   // Graceful cleanup on page unload
   window.addEventListener('beforeunload', () => {
+    if (uiController) uiController.dispose();
+    soundManager.dispose();
     if (scrollController) scrollController.dispose();
     if (sceneManager) sceneManager.dispose();
   });
 }
+
+// Global exception boundary to prevent frozen loader or blank screen
+window.addEventListener('error', (event) => {
+  console.error('[AFTERLIGHT Global Error]:', event.error || event.message);
+  const loaderEl = document.querySelector('#experience-loader');
+  if (loaderEl && !loaderEl.classList.contains('is-loaded')) {
+    loaderEl.classList.add('is-loaded');
+    setTimeout(() => {
+      loaderEl.style.display = 'none';
+    }, 300);
+    UIController.showFatalNotice(event?.message);
+  }
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  console.warn('[AFTERLIGHT Unhandled Rejection]:', event.reason);
+});
 
 // Bootstrap when DOM is ready
 if (document.readyState === 'loading') {

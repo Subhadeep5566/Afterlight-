@@ -2,16 +2,45 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#08090b" />
+    <meta name="color-scheme" content="dark" />
     <title>AFTERLIGHT — Experimental 3D Digital Art Studio</title>
     <meta name="description" content="AFTERLIGHT is a continuous interactive 3D digital art experience. Procedural geometries, physical glass ribbons, liquid chrome, and scroll-driven metamorphosis." />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' fill='%234f75ff'>✦</text></svg>" />
+    <link rel="canonical" href="https://afterlight.studio/" />
+    
+    <!-- Open Graph & Social Cards -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://afterlight.studio/" />
+    <meta property="og:site_name" content="AFTERLIGHT" />
+    <meta property="og:title" content="AFTERLIGHT — Experimental 3D Digital Art Studio" />
+    <meta property="og:description" content="A continuous interactive 3D digital art experience. Procedural geometries, physical glass ribbons, liquid chrome, and scroll-driven metamorphosis." />
+    <meta property="og:image" content="/favicon.svg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="AFTERLIGHT — Experimental 3D Digital Art Studio" />
+    <meta name="twitter:description" content="A continuous interactive 3D digital art experience. Procedural geometries, physical glass ribbons, liquid chrome, and scroll-driven metamorphosis." />
+    <meta name="twitter:image" content="/favicon.svg" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="manifest" href="/site.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Instrument+Serif:ital@0;1&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/src/styles/main.css" />
   </head>
   <body>
+    <!-- Accessibility Skip Link -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <!-- Fallback for JavaScript Disabled -->
+    <noscript>
+      <div class="noscript-banner">
+        <h2>JavaScript Required</h2>
+        <p>AFTERLIGHT is a real-time procedural WebGL digital art experience. Please enable JavaScript in your browser settings to experience the artwork.</p>
+      </div>
+    </noscript>
+
     <!-- Real-time 3D Canvas Background -->
     <canvas id="webgl-canvas" aria-hidden="true"></canvas>
 
@@ -43,8 +72,25 @@
         <span class="fallback-code">// GL_INITIALIZATION_NOTICE</span>
         <h2 class="fallback-title">Hardware Acceleration Required</h2>
         <p class="fallback-desc">
-          AFTERLIGHT generates procedural physical sculptures via real-time WebGL shaders. Your browser or display driver does not currently support WebGL hardware acceleration.
+          AFTERLIGHT generates procedural physical sculptures via real-time WebGL shaders. Your browser or display driver does not currently support WebGL hardware acceleration. You can continue exploring the seven-chapter narrative in static editorial mode.
         </p>
+        <div class="fallback-actions">
+          <button id="btn-webgl-retry" class="btn-primary btn-fallback-action" type="button">
+            <span class="btn-label">RETRY CONNECTION</span>
+            <span class="btn-arrow" aria-hidden="true">↺</span>
+          </button>
+          <button id="btn-webgl-editorial" class="btn-ghost btn-fallback-action" type="button">
+            <span>CONTINUE IN EDITORIAL MODE</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- WebGL Context Loss Banner -->
+    <div id="context-lost-banner" class="context-lost-banner" style="display: none;" role="status" aria-live="polite">
+      <div class="context-lost-content">
+        <span class="context-glyph" aria-hidden="true">✦</span>
+        <span class="context-text">GRAPHICS CONTEXT INTERRUPTED — RESTORING EQUILIBRIUM...</span>
       </div>
     </div>
 
@@ -76,6 +122,14 @@
             <span class="badge-dot"></span>
             <span id="nav-chapter-indicator" class="badge-text">CH 01 // ORIGIN</span>
           </div>
+          <button id="btn-sound-toggle" class="btn-ghost btn-sound" type="button" aria-label="Toggle Ambient Sound" aria-pressed="false">
+            <span class="sound-bars" aria-hidden="true">
+              <span class="sound-bar bar-1"></span>
+              <span class="sound-bar bar-2"></span>
+              <span class="sound-bar bar-3"></span>
+            </span>
+            <span id="sound-label" class="sound-label">SOUND // OFF</span>
+          </button>
           <button id="btn-nav-playground" class="btn-ghost" type="button">
             ENTER PLAYGROUND
           </button>

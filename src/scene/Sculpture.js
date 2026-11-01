@@ -65,11 +65,22 @@ export class Sculpture {
       filamentAccent: new THREE.Color(0xf6f5f3)
     };
 
+    this.isMorphDirty = true;
+    this.isPaletteDirty = true;
+
     this.mouseCurrent = new THREE.Vector2(0, 0);
     this.mouseTarget = new THREE.Vector2(0, 0);
 
     this.baseRotationSpeed = 0.07;
     this.pulseEnergy = 0.0;
+    this.pulseTimer = 0.0;
+    this.onAutonomousPulse = null;
+
+    // Organic awakening & living idle motion parameters
+    this.awakeningScale = 0.72;
+    this.targetAwakeningScale = 0.72;
+    this.idleTime = 0.0;
+    this.autonomousWeight = 1.0;
 
     this.init();
   }
@@ -459,6 +470,7 @@ export class Sculpture {
     this.targetWeights.tension = clampedT;
     this.targetWeights.dissolution = clampedD;
     this.targetWeights.reformation = clampedR;
+    this.isMorphDirty = true;
 
     if (immediate) {
       this.state.tension = clampedT;
@@ -529,6 +541,7 @@ export class Sculpture {
 
   setPalette(paletteKey) {
     this.state.activePalette = paletteKey;
+    this.isPaletteDirty = true;
     switch (paletteKey) {
       case 'lapis':
         this.paletteColors.core.set(0xf0f3f6);
@@ -567,6 +580,11 @@ export class Sculpture {
 
   triggerPulse(intensity = 1.0) {
     this.pulseEnergy = intensity;
+  }
+
+  triggerAwakening() {
+    this.targetAwakeningScale = 1.0;
+    this.triggerPulse(1.4);
   }
 
   applyDrag(deltaX, deltaY, sensitivity) {
@@ -624,6 +642,8 @@ export class Sculpture {
     this.state.filamentIntensity = 1.0;
     this.setPalette('lapis');
     this.mouseTarget.set(0, 0);
+    this.awakeningScale = 1.0;
+    this.targetAwakeningScale = 1.0;
     this.resetUserRotation(immediate);
   }
 
@@ -680,35 +700,90 @@ export class Sculpture {
     this.interactionGroup.rotation.x = this.userRotation.pitch;
     this.interactionGroup.rotation.z = this.userRotation.roll;
 
-    // 2. Autonomous idle rotation applied to contentGroup
+    // 2. Autonomous living idle behavior:
+    // User-controlled rotation always takes priority: when user drags, smoothly ramp down autonomous weight
+    const targetWeight = this.userRotation.isDragging ? 0.12 : 1.0;
+    this.autonomousWeight += (targetWeight - this.autonomousWeight) * 0.08;
+
+    // Advance continuous idle time scaled by autonomous weight (prevents rotational jumps)
+    this.idleTime += delta * this.autonomousWeight;
     const speed = this.baseRotationSpeed * this.state.rotationSpeedFactor;
-    this.contentGroup.rotation.y = time * speed;
-    this.contentGroup.rotation.x = 0.22 + Math.sin(time * 0.06) * 0.04 * this.state.deformationFactor;
-    this.contentGroup.rotation.z = Math.cos(time * 0.05) * 0.03 * this.state.deformationFactor;
 
-    // 3. Smooth morph target weights interpolation
-    const morphLerp = Math.min(1.0, 8.0 * delta);
-    this.state.tension += (this.targetWeights.tension - this.state.tension) * morphLerp;
-    this.state.dissolution += (this.targetWeights.dissolution - this.state.dissolution) * morphLerp;
-    this.state.reformation += (this.targetWeights.reformation - this.state.reformation) * morphLerp;
-    this.applyMorphInfluences();
+    this.contentGroup.rotation.y = this.idleTime * speed;
+    this.contentGroup.rotation.x = 0.22 + (Math.sin(this.idleTime * 0.11) * 0.034 + Math.cos(this.idleTime * 0.052) * 0.015) * this.state.deformationFactor;
+    this.contentGroup.rotation.z = (Math.cos(this.idleTime * 0.082) * 0.024 + Math.sin(this.idleTime * 0.036) * 0.012) * this.state.deformationFactor;
 
-    // 4. Smooth material palette color transitions
-    const colorLerp = Math.min(1.0, 6.0 * delta);
-    if (this.coreMaterial) {
-      this.coreMaterial.color.lerp(this.paletteColors.core, colorLerp);
-    }
-    if (this.ribbonMaterial) {
-      this.ribbonMaterial.color.lerp(this.paletteColors.ribbon, colorLerp);
-      this.ribbonMaterial.specularColor.lerp(this.paletteColors.specular, colorLerp);
-    }
-    if (this.filamentUniforms) {
-      this.filamentUniforms.uBaseColor.value.lerp(this.paletteColors.filamentBase, colorLerp);
-      this.filamentUniforms.uAccentColor.value.lerp(this.paletteColors.filamentAccent, colorLerp);
+    // 3. Subtle periodic autonomous harmonic energy pulse (every ~14 seconds)
+    this.pulseTimer += delta;
+    if (this.pulseTimer > 13.5 && !this.userRotation.isDragging && this.autonomousWeight > 0.8) {
+      this.pulseTimer = 0.0;
+      this.triggerPulse(0.55);
+      if (this.onAutonomousPulse) {
+        this.onAutonomousPulse();
+      }
     }
 
-    const baseScale = 1.0 + this.pulseEnergy * 0.08;
-    this.group.scale.set(baseScale, baseScale, baseScale);
+    // 4. Smooth morph target weights interpolation (optimized dirty check)
+    const dt = Math.abs(this.targetWeights.tension - this.state.tension);
+    const dd = Math.abs(this.targetWeights.dissolution - this.state.dissolution);
+    const dr = Math.abs(this.targetWeights.reformation - this.state.reformation);
+
+    if (dt > 0.0001 || dd > 0.0001 || dr > 0.0001) {
+      const morphLerp = Math.min(1.0, 8.0 * delta);
+      this.state.tension += (this.targetWeights.tension - this.state.tension) * morphLerp;
+      this.state.dissolution += (this.targetWeights.dissolution - this.state.dissolution) * morphLerp;
+      this.state.reformation += (this.targetWeights.reformation - this.state.reformation) * morphLerp;
+      this.applyMorphInfluences();
+    } else if (this.isMorphDirty) {
+      this.state.tension = this.targetWeights.tension;
+      this.state.dissolution = this.targetWeights.dissolution;
+      this.state.reformation = this.targetWeights.reformation;
+      this.applyMorphInfluences();
+      this.isMorphDirty = false;
+    }
+
+    // 5. Smooth material palette color transitions (optimized dirty check)
+    if (this.isPaletteDirty) {
+      const colorLerp = Math.min(1.0, 6.0 * delta);
+      let paletteStillChanging = false;
+
+      if (this.coreMaterial && !this.coreMaterial.color.equals(this.paletteColors.core)) {
+        this.coreMaterial.color.lerp(this.paletteColors.core, colorLerp);
+        paletteStillChanging = true;
+      }
+      if (this.ribbonMaterial) {
+        if (!this.ribbonMaterial.color.equals(this.paletteColors.ribbon)) {
+          this.ribbonMaterial.color.lerp(this.paletteColors.ribbon, colorLerp);
+          paletteStillChanging = true;
+        }
+        if (!this.ribbonMaterial.specularColor.equals(this.paletteColors.specular)) {
+          this.ribbonMaterial.specularColor.lerp(this.paletteColors.specular, colorLerp);
+          paletteStillChanging = true;
+        }
+      }
+      if (this.filamentUniforms) {
+        if (!this.filamentUniforms.uBaseColor.value.equals(this.paletteColors.filamentBase)) {
+          this.filamentUniforms.uBaseColor.value.lerp(this.paletteColors.filamentBase, colorLerp);
+          paletteStillChanging = true;
+        }
+        if (!this.filamentUniforms.uAccentColor.value.equals(this.paletteColors.filamentAccent)) {
+          this.filamentUniforms.uAccentColor.value.lerp(this.paletteColors.filamentAccent, colorLerp);
+          paletteStillChanging = true;
+        }
+      }
+
+      if (!paletteStillChanging) {
+        this.isPaletteDirty = false;
+      }
+    }
+
+    // 6. Multi-frequency organic breathing + awakening interpolation
+    this.awakeningScale += (this.targetAwakeningScale - this.awakeningScale) * Math.min(1.0, 2.2 * delta);
+    const breath1 = Math.sin(time * 0.72) * 0.018;
+    const breath2 = Math.sin(time * 0.26 + 1.2) * 0.009;
+    const organicBreath = 1.0 + (breath1 + breath2) * this.state.deformationFactor;
+    const totalScale = (this.awakeningScale * organicBreath) + this.pulseEnergy * 0.08;
+    this.group.scale.set(totalScale, totalScale, totalScale);
 
     if (this.filamentUniforms) {
       this.filamentUniforms.uTime.value = time;
@@ -731,7 +806,19 @@ export class Sculpture {
     [this.coreMesh, this.ribbonMesh, this.filaments, this.stardust].forEach((obj) => {
       if (obj) {
         if (this.contentGroup) this.contentGroup.remove(obj);
-        if (obj.geometry) obj.geometry.dispose();
+        if (obj.geometry) {
+          if (obj.geometry.morphAttributes) {
+            for (const key in obj.geometry.morphAttributes) {
+              const attrs = obj.geometry.morphAttributes[key];
+              if (Array.isArray(attrs)) {
+                attrs.forEach((attr) => {
+                  if (attr && typeof attr.dispose === 'function') attr.dispose();
+                });
+              }
+            }
+          }
+          obj.geometry.dispose();
+        }
         if (obj.material) {
           if (Array.isArray(obj.material)) obj.material.forEach((m) => m.dispose());
           else obj.material.dispose();
@@ -748,6 +835,12 @@ export class Sculpture {
     this.ribbonMesh = null;
     this.filaments = null;
     this.stardust = null;
+    this.coreMaterial = null;
+    this.ribbonMaterial = null;
+    this.filamentMaterial = null;
+    this.stardustMaterial = null;
+    this.filamentUniforms = null;
+    this.stardustUniforms = null;
     this.contentGroup = null;
     this.interactionGroup = null;
   }

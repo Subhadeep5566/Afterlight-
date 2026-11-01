@@ -9,11 +9,12 @@ export class SceneManager {
    * @param {Function} [options.onWebGLError]
    * @param {Function} [options.onFirstDrag]
    */
-  constructor({ canvas, onFPSUpdate = null, onWebGLError = null, onFirstDrag = null } = {}) {
+  constructor({ canvas, onFPSUpdate = null, onWebGLError = null, onFirstDrag = null, onMotion = null } = {}) {
     this.canvas = canvas;
     this.onFPSUpdate = onFPSUpdate;
     this.onWebGLError = onWebGLError;
     this.onFirstDrag = onFirstDrag;
+    this.onMotion = onMotion;
 
     this.isRunning = false;
     this.animationFrameId = null;
@@ -94,31 +95,82 @@ export class SceneManager {
     const width = window.innerWidth;
     const height = window.innerHeight;
     this.isMobile = width < 768;
+    this.isTablet = width >= 768 && width <= 1080;
+    this.isDesktop = width > 1080;
 
     this.scene = new THREE.Scene();
 
     this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    const initialZ = this.isMobile ? 9.2 : 7.8;
+    const initialZ = this.isMobile ? 9.2 : this.isTablet ? 8.6 : 7.8;
     this.cameraTargetPos.set(0, 0, initialZ);
     this.cameraLookTarget.set(0, 0, 0);
     this.cameraCurrentPos.copy(this.cameraTargetPos);
     this.cameraCurrentLook.copy(this.cameraLookTarget);
     this.camera.position.copy(this.cameraCurrentPos);
 
-    this.sculptureTargetX = this.isMobile ? 0 : 1.25;
+    this.sculptureTargetX = this.isMobile ? 0 : this.isTablet ? 0.65 : 1.25;
     this.sculptureCurrentX = this.sculptureTargetX;
 
     this.dpr = Math.min(window.devicePixelRatio || 1, 2);
-    this.renderer = new THREE.WebGLRenderer({
-      canvas: this.canvas,
-      antialias: true,
-      alpha: true,
-      powerPreference: 'high-performance'
-    });
-    this.renderer.setSize(width, height);
-    this.renderer.setPixelRatio(this.dpr);
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.05;
+    this.adaptiveDpr = this.dpr;
+    this.lowFpsCount = 0;
+    this.highFpsCount = 0;
+    this.isContextLost = false;
+
+    try {
+      this.renderer = new THREE.WebGLRenderer({
+        canvas: this.canvas,
+        antialias: true,
+        alpha: true,
+        powerPreference: 'high-performance'
+      });
+      this.renderer.setSize(width, height);
+      this.renderer.setPixelRatio(this.dpr);
+      this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      this.renderer.toneMappingExposure = 1.05;
+    } catch (err) {
+      console.error('[AFTERLIGHT WebGL] Renderer creation failed:', err);
+      if (this.onWebGLError) this.onWebGLError();
+      return;
+    }
+
+    // Listen to WebGL context lifecycle events
+    this.handleContextLost = (e) => {
+      e.preventDefault();
+      console.warn('[AFTERLIGHT WebGL] Context lost. Pausing render loop.');
+      this.isContextLost = true;
+      this.stop();
+      const banner = document.querySelector('#context-lost-banner');
+      if (banner) banner.style.display = 'block';
+    };
+    this.handleContextRestored = () => {
+      console.info('[AFTERLIGHT WebGL] Context restored. Rebuilding scene resources...');
+      this.isContextLost = false;
+      const banner = document.querySelector('#context-lost-banner');
+      if (banner) banner.style.display = 'none';
+      try {
+        if (this.renderer) {
+          this.renderer.resetState();
+          this.setupEnvironment();
+          if (this.sculpture) {
+            this.sculpture.dispose();
+            this.scene.remove(this.sculpture.group);
+            this.sculpture = new Sculpture({
+              pixelRatio: this.adaptiveDpr || this.dpr,
+              isMobile: this.isMobile
+            });
+            this.scene.add(this.sculpture.group);
+          }
+          this.renderer.compile(this.scene, this.camera);
+        }
+        this.start();
+      } catch (err) {
+        console.error('[AFTERLIGHT WebGL] Failed to recover from context restoration:', err);
+        if (this.onWebGLError) this.onWebGLError();
+      }
+    };
+    this.canvas.addEventListener('webglcontextlost', this.handleContextLost, false);
+    this.canvas.addEventListener('webglcontextrestored', this.handleContextRestored, false);
 
     this.setupEnvironment();
     this.setupLighting();
@@ -234,22 +286,34 @@ export class SceneManager {
   }
 
   onResize() {
+    if (this.resizeRaf) cancelAnimationFrame(this.resizeRaf);
+    this.resizeRaf = requestAnimationFrame(() => {
+      this._applyResize();
+      this.resizeRaf = null;
+    });
+  }
+
+  _applyResize() {
     if (!this.renderer || !this.camera) return;
 
     const width = window.innerWidth;
     const height = window.innerHeight;
     this.isMobile = width < 768;
+    this.isTablet = width >= 768 && width <= 1080;
+    this.isDesktop = width > 1080;
     this.dragSensitivity = (Math.PI / Math.min(width || 1440, 1600)) * 1.5;
 
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
 
     this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.adaptiveDpr = Math.min(this.adaptiveDpr || this.dpr, this.dpr);
     this.renderer.setSize(width, height);
-    this.renderer.setPixelRatio(this.dpr);
+    this.renderer.setPixelRatio(this.adaptiveDpr);
 
     if (this.sculpture) {
-      this.sculpture.setPixelRatio(this.dpr);
+      this.sculpture.isMobile = this.isMobile;
+      this.sculpture.setPixelRatio(this.adaptiveDpr);
     }
   }
 
@@ -334,6 +398,9 @@ export class SceneManager {
 
       if (this.sculpture) {
         this.sculpture.applyDrag(dx, dy, this.dragSensitivity);
+        if (this.onMotion) {
+          this.onMotion(Math.hypot(this.drag.vx, this.drag.vy) * 0.05);
+        }
       }
     }
 
@@ -418,7 +485,7 @@ export class SceneManager {
   }
 
   renderLoop() {
-    if (!this.isRunning) return;
+    if (!this.isRunning || this.isContextLost) return;
 
     this.animationFrameId = requestAnimationFrame(() => this.renderLoop());
 
@@ -447,22 +514,29 @@ export class SceneManager {
       this.sculpture.group.position.y = this.sculptureCurrentY;
     }
 
-    // 3. Smooth cinematic lighting transitions
+    // 3. Smooth cinematic lighting transitions with dirty checks
     const lightLerp = Math.min(1.0, 4.0 * delta);
     if (this.keyLight) {
       this.keyLight.intensity += (this.lightingTargets.keyIntensity - this.keyLight.intensity) * lightLerp;
     }
     if (this.rimLight) {
       this.rimLight.intensity += (this.lightingTargets.rimIntensity - this.rimLight.intensity) * lightLerp;
-      this.rimLight.color.lerp(this.lightingTargets.rimColor, lightLerp);
+      if (!this.rimLight.color.equals(this.lightingTargets.rimColor)) {
+        this.rimLight.color.lerp(this.lightingTargets.rimColor, lightLerp);
+      }
     }
     if (this.corePointLight) {
       this.corePointLight.intensity += (this.lightingTargets.coreIntensity - this.corePointLight.intensity) * lightLerp;
-      this.corePointLight.color.lerp(this.lightingTargets.coreColor, lightLerp);
+      if (!this.corePointLight.color.equals(this.lightingTargets.coreColor)) {
+        this.corePointLight.color.lerp(this.lightingTargets.coreColor, lightLerp);
+      }
     }
 
     if (this.sculpture) {
       this.sculpture.update(elapsedTime, delta);
+      if (this.onMotion && (Math.abs(this.sculpture.userRotation.vx) > 0.0001 || Math.abs(this.sculpture.userRotation.vy) > 0.0001)) {
+        this.onMotion(Math.hypot(this.sculpture.userRotation.vx, this.sculpture.userRotation.vy) * 15.0);
+      }
     }
 
     if (this.renderer && this.scene && this.camera) {
@@ -477,6 +551,32 @@ export class SceneManager {
       this.lastFpsTime = now;
       if (this.onFPSUpdate) {
         this.onFPSUpdate(this.currentFps);
+      }
+
+      // Adaptive Rendering Quality: auto-throttle DPR under load to maintain responsive 60fps
+      if (this.currentFps < 32) {
+        this.lowFpsCount++;
+        this.highFpsCount = 0;
+        if (this.lowFpsCount >= 2 && this.adaptiveDpr > 1.0) {
+          this.adaptiveDpr = 1.0;
+          this.renderer.setPixelRatio(this.adaptiveDpr);
+          if (this.sculpture) this.sculpture.setPixelRatio(this.adaptiveDpr);
+        } else if (this.lowFpsCount >= 4 && this.adaptiveDpr > 0.85) {
+          this.adaptiveDpr = 0.85;
+          this.renderer.setPixelRatio(this.adaptiveDpr);
+          if (this.sculpture) this.sculpture.setPixelRatio(this.adaptiveDpr);
+        }
+      } else if (this.currentFps >= 56) {
+        this.highFpsCount++;
+        this.lowFpsCount = 0;
+        if (this.highFpsCount >= 6 && this.adaptiveDpr < this.dpr) {
+          this.adaptiveDpr = this.dpr;
+          this.renderer.setPixelRatio(this.adaptiveDpr);
+          if (this.sculpture) this.sculpture.setPixelRatio(this.adaptiveDpr);
+        }
+      } else {
+        this.lowFpsCount = 0;
+        this.highFpsCount = 0;
       }
     }
   }
@@ -493,6 +593,9 @@ export class SceneManager {
     if (this.isMobile) {
       this.cameraTargetPos.set(0, y, z + 1.4);
       this.cameraLookTarget.set(0, lookY, lookZ);
+    } else if (this.isTablet) {
+      this.cameraTargetPos.set(x * 0.45, y, z + 0.8);
+      this.cameraLookTarget.set(lookX * 0.45, lookY, lookZ);
     } else {
       this.cameraTargetPos.set(x, y, z);
       this.cameraLookTarget.set(lookX, lookY, lookZ);
@@ -503,6 +606,9 @@ export class SceneManager {
     if (this.isMobile) {
       this.sculptureTargetX = 0;
       this.sculptureTargetY = y * 0.4;
+    } else if (this.isTablet) {
+      this.sculptureTargetX = x * 0.5;
+      this.sculptureTargetY = y * 0.7;
     } else {
       this.sculptureTargetX = x;
       this.sculptureTargetY = y;
@@ -524,6 +630,11 @@ export class SceneManager {
   dispose() {
     this.stop();
 
+    if (this.resizeRaf) {
+      cancelAnimationFrame(this.resizeRaf);
+      this.resizeRaf = null;
+    }
+
     window.removeEventListener('resize', this.handleResize);
     window.removeEventListener('pointerdown', this.handlePointerDown);
     window.removeEventListener('pointermove', this.handlePointerMove);
@@ -532,15 +643,36 @@ export class SceneManager {
     window.removeEventListener('click', this.handleClickCapture, { capture: true });
     document.removeEventListener('visibilitychange', this.handleVisibilityChange);
 
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (mediaQuery.removeEventListener && this.handleMotionChange) {
+      mediaQuery.removeEventListener('change', this.handleMotionChange);
+    }
+
+    if (this.canvas) {
+      if (this.handleContextLost) this.canvas.removeEventListener('webglcontextlost', this.handleContextLost);
+      if (this.handleContextRestored) this.canvas.removeEventListener('webglcontextrestored', this.handleContextRestored);
+    }
+
     if (this.sculpture) {
       this.sculpture.dispose();
-      this.scene.remove(this.sculpture.group);
+      if (this.scene) this.scene.remove(this.sculpture.group);
       this.sculpture = null;
     }
+
+    [this.ambientLight, this.keyLight, this.rimLight, this.fillLight, this.corePointLight].forEach((light) => {
+      if (light) {
+        if (this.scene) this.scene.remove(light);
+        if (light.dispose) light.dispose();
+      }
+    });
 
     if (this.envMap) {
       this.envMap.dispose();
       this.envMap = null;
+    }
+
+    if (this.scene) {
+      this.scene.environment = null;
     }
 
     if (this.renderer) {

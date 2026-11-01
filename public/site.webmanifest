@@ -1,0 +1,17 @@
+{
+  "name": "AFTERLIGHT — Experimental 3D Digital Art Studio",
+  "short_name": "AFTERLIGHT",
+  "description": "Continuous interactive 3D digital art experience. Procedural geometries, physical glass ribbons, liquid chrome, and scroll-driven metamorphosis.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#08090b",
+  "theme_color": "#08090b",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

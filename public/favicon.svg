@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#141926" />
+      <stop offset="100%" stop-color="#08090b" />
+    </radialGradient>
+    <linearGradient id="starGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="40%" stop-color="#7698ff" />
+      <stop offset="100%" stop-color="#4f75ff" />
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#bgGrad)" stroke="rgba(244, 243, 240, 0.12)" stroke-width="2" />
+  <!-- Radiant Celestial Emblem -->
+  <path d="M 64 18 C 64 45 45 64 18 64 C 45 64 64 83 64 110 C 64 83 83 64 110 64 C 83 64 64 45 64 18 Z" fill="url(#starGrad)" filter="url(#glow)" />
+  <circle cx="64" cy="64" r="3.5" fill="#ffffff" />
+</svg>

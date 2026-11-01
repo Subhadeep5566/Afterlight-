@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+  base: './',
   server: {
     port: 5173,
     host: true,
@@ -10,7 +11,9 @@ export default defineConfig({
     target: 'esnext',
     outDir: 'dist',
     assetsDir: 'assets',
-    sourcemap: true,
+    sourcemap: false,
+    minify: 'esbuild',
+    cssCodeSplit: true,
     rollupOptions: {
       output: {
         manualChunks: {
